@@ -1,0 +1,21 @@
+// Ditto "On Copy" script: removes tracking parameters from copied links.
+// Only acts if the copied text is exactly ONE http(s) link; everything else is left alone.
+// Must return false - returning true would cancel saving the copy.
+
+if (clip.GetClipSize("CF_UNICODETEXT") < 6000 && clip.GetClipSize("CF_TEXT") < 6000 && clip.AsciiTextMatchesRegex("\\s*https?://\\S+\\s*")) {
+
+    // parameter names that are removed on every site
+    var names = "[uU][tT][mM]_[^=&#\\s]*|hsa_[^=&#\\s]*|si|fbclid|gclid|gclsrc|dclid|gbraid|wbraid|msclkid|yclid|twclid|ttclid|li_fat_id|igshid|igsh|mc_eid|mc_cid|_hsenc|_hsmi|mkt_tok|vero_id|oly_enc_id|oly_anon_id|wickedid|_ga|_gl|ref_src|ref_url|mibextid|trk|trkInfo|lipi";
+
+    // Spotify share links never need a query string: drop all of it
+    clip.AsciiTextReplaceRegex("^(\\s*https?://open\\.spotify\\.com/[^?#\\s]*)\\?[^#\\s]*", "\$1");
+
+    // 1. tracking parameters behind an & (all of them)
+    clip.AsciiTextReplaceRegex("&(?:" + names + ")(?:=[^&#\\s]*)?(?=[&#\\s]|\$)", "");
+    // 2. tracking parameter right after the ? with more parameters following
+    clip.AsciiTextReplaceRegex("\\?(?:" + names + ")(?:=[^&#\\s]*)?&", "?");
+    // 3. tracking parameter right after the ? and nothing after it
+    clip.AsciiTextReplaceRegex("\\?(?:" + names + ")(?:=[^&#\\s]*)?(?=[#\\s]|\$)", "");
+}
+
+return false;
